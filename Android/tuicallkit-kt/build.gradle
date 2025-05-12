@@ -54,7 +54,7 @@ dependencies {
         api project(':tuicallengine')
     } else {
         api "com.google.code.gson:gson:2.9.1"
-        api rootProject.getProperties().containsKey("liteavSdk") ? rootProject.ext.liteavSdk : "com.tencent.liteav:LiteAVSDK_Professional:11.8.0.14176"
-        api 'com.tencent.liteav.tuikit:tuicallengine:2.7.0.1130'
+        api rootProject.getProperties().containsKey("liteavSdk") ? rootProject.ext.liteavSdk : "com.tencent.liteav:LiteAVSDK_Professional:12.4+"
+        api 'com.tencent.liteav.tuikit:tuicallengine:2.7.0.1150'
     }
 }

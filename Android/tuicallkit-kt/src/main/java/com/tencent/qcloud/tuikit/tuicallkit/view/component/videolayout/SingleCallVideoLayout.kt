@@ -58,6 +58,10 @@ class SingleCallVideoLayout(context: Context) : BaseCallView(context) {
 
             mainHandler.sendEmptyMessageDelayed(MESSAGE_VIDEO_AVAIABLE_UPDATE, UPDATE_INTERVAL)
         }
+
+        //根据实际业务情况,决定是否要操作摄像头和麦克风
+        EngineManager.instance.openCamera(viewModel.isFrontCamera.get(), videoViewBig?.getVideoView(), null)
+        EngineManager.instance.openMicrophone(null)
     }
 
     private var blurBackgroundObserver = Observer<Boolean> {

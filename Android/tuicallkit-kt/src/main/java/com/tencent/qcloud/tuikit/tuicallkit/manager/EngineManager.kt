@@ -1,7 +1,10 @@
 package com.tencent.qcloud.tuikit.tuicallkit.manager
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.text.TextUtils
+import android.webkit.ValueCallback
 import com.tencent.imsdk.BaseConstants
 import com.tencent.qcloud.tuicore.TUIConfig
 import com.tencent.qcloud.tuicore.TUIConstants
@@ -27,6 +30,7 @@ import com.tencent.qcloud.tuikit.tuicallkit.state.TUICallState
 import com.tencent.qcloud.tuikit.tuicallkit.utils.PermissionRequest
 import com.tencent.qcloud.tuikit.tuicallkit.utils.PermissionRequest.requestPermissions
 import com.tencent.qcloud.tuikit.tuicallkit.utils.UserInfoUtils
+import com.tencent.trtc.TRTCCloud
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.Collections
@@ -34,6 +38,7 @@ import java.util.Collections
 class EngineManager private constructor(context: Context) {
 
     public val context: Context
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     init {
         this.context = context.applicationContext
@@ -224,19 +229,24 @@ class EngineManager private constructor(context: Context) {
     }
 
     fun accept(callback: TUICommonDefine.Callback?) {
-        TUICallEngine.createInstance(context).accept(object : TUICommonDefine.Callback {
-            override fun onSuccess() {
-                if (TUICallState.instance.selfUser.get().callStatus.get() != TUICallDefine.Status.Accept) {
-                    TUICallState.instance.selfUser.get().callStatus.set(TUICallDefine.Status.Accept)
-                }
-                callback?.onSuccess()
-            }
+        TRTCCloud.sharedInstance(context).exitRoom()
 
-            override fun onError(errCode: Int, errMsg: String) {
-                TUICallState.instance.selfUser.get().callStatus.set(TUICallDefine.Status.None)
-                callback?.onError(errCode, errMsg)
-            }
-        })
+        // 延迟300ms 等 exitRoom 成功了; 这里只是为了测试，实际开发中，最好根据上一次的退房状态来判断是否需要延迟
+        mainHandler.postDelayed({
+            TUICallEngine.createInstance(context).accept(object : TUICommonDefine.Callback {
+                override fun onSuccess() {
+                    if (TUICallState.instance.selfUser.get().callStatus.get() != TUICallDefine.Status.Accept) {
+                        TUICallState.instance.selfUser.get().callStatus.set(TUICallDefine.Status.Accept)
+                    }
+                    callback?.onSuccess()
+                }
+
+                override fun onError(errCode: Int, errMsg: String) {
+                    TUICallState.instance.selfUser.get().callStatus.set(TUICallDefine.Status.None)
+                    callback?.onError(errCode, errMsg)
+                }
+            })
+        }, 300)
     }
 
     fun reject(callback: TUICommonDefine.Callback?) {
